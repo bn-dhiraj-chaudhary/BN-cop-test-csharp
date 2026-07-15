@@ -1,0 +1,4 @@
+bin/
+obj/
+.synopsys/
+.polaris.yml

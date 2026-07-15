@@ -1,0 +1,28 @@
+# Coverity on Polaris (COP) capture/analyze configuration for cop-test-csharp.
+capture:
+  build:
+    clean-command: "dotnet clean"
+    build-command: "dotnet build -c Release"
+  files:
+    exclude-regex: (bin|obj|\.git)/.*
+  languages:
+    include: [csharp]
+analyze:
+  mode: central
+  coverity:
+    cov-analyze:
+      - "--webapp-security"
+      - "--security"
+      - "--enable"
+      - "HARDCODED_CREDENTIALS"
+      - "--enable"
+      - "SQLI"
+      - "--enable"
+      - "OS_CMD_INJECTION"
+      - "--enable"
+      - "PATH_MANIPULATION"
+      - "--enable"
+      - "RISKY_CRYPTO"
+install:
+  coverity:
+    version: default

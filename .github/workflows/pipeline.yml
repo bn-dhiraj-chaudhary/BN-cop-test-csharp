@@ -1,0 +1,67 @@
+name: COP / Polaris Scan Pipeline (C#)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which platform to scan against"
+        required: true
+        default: cop
+        type: choice
+        options:
+          - cop
+          - polaris
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # Polaris/Coverity CLI reads a fixed config filename (.polaris.yml).
+      # This repo keeps the config as COP.yml so it's easy to spot in this test harness;
+      # copy it into place before invoking the CLI.
+      - name: Stage COP.yml as .polaris.yml
+        run: cp COP.yml .polaris.yml
+
+      - name: Resolve target server/token
+        id: target
+        run: |
+          TARGET="${{ github.event.inputs.target || 'cop' }}"
+          if [ "$TARGET" = "polaris" ]; then
+            echo "server_url=${{ secrets.POLARIS_SERVER_URL }}" >> "$GITHUB_OUTPUT"
+            echo "access_token=${{ secrets.POLARIS_ACCESS_TOKEN }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "server_url=${{ secrets.COP_SERVER_URL }}" >> "$GITHUB_OUTPUT"
+            echo "access_token=${{ secrets.COP_ACCESS_TOKEN }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Polaris CLI
+        env:
+          POLARIS_SERVER_URL: ${{ steps.target.outputs.server_url }}
+          POLARIS_ACCESS_TOKEN: ${{ steps.target.outputs.access_token }}
+        run: |
+          curl -sSL "$POLARIS_SERVER_URL/api/tools/polaris_cli-linux64.zip" -o polaris_cli.zip
+          unzip -q polaris_cli.zip -d polaris_cli
+          echo "$(pwd)/polaris_cli/$(ls polaris_cli)/bin" >> "$GITHUB_PATH"
+
+      - name: Run scan
+        env:
+          POLARIS_SERVER_URL: ${{ steps.target.outputs.server_url }}
+          POLARIS_ACCESS_TOKEN: ${{ steps.target.outputs.access_token }}
+        run: polaris analyze -w
+
+      - name: Upload scan report
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-${{ github.event.inputs.target || 'cop' }}
+          path: .synopsys/polaris/data/coverity/**/idir/output/summary.txt
+          if-no-files-found: ignore
