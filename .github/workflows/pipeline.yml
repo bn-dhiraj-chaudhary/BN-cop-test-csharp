@@ -49,7 +49,18 @@ jobs:
           POLARIS_SERVER_URL: ${{ steps.target.outputs.server_url }}
           POLARIS_ACCESS_TOKEN: ${{ steps.target.outputs.access_token }}
         run: |
-          curl -sSL "$POLARIS_SERVER_URL/api/tools/polaris_cli-linux64.zip" -o polaris_cli.zip
+          if [ -z "$POLARIS_SERVER_URL" ] || [ -z "$POLARIS_ACCESS_TOKEN" ]; then
+            echo "::error::POLARIS_SERVER_URL or POLARIS_ACCESS_TOKEN is empty - check that the COP_SERVER_URL/COP_ACCESS_TOKEN (or POLARIS_SERVER_URL/POLARIS_ACCESS_TOKEN) secrets are set on this repo for the '${{ github.event.inputs.target || 'cop' }}' target."
+            exit 1
+          fi
+          SERVER_URL="${POLARIS_SERVER_URL%/}"
+          HTTP_CODE=$(curl -sSL -w "%{http_code}" -o polaris_cli.zip "$SERVER_URL/api/tools/polaris_cli-linux64.zip")
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Failed to download Polaris CLI from $SERVER_URL (HTTP $HTTP_CODE)"
+            echo "--- Response body ---"
+            cat polaris_cli.zip
+            exit 1
+          fi
           unzip -q polaris_cli.zip -d polaris_cli
           echo "$(pwd)/polaris_cli/$(ls polaris_cli)/bin" >> "$GITHUB_PATH"
 
