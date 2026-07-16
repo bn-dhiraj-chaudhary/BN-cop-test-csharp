@@ -76,12 +76,3 @@ jobs:
           name: scan-results-${{ github.event.inputs.target || 'cop' }}
           path: .synopsys/polaris/data/coverity/**/idir/output/summary.txt
           if-no-files-found: ignore
-
-      - name: Black Duck Polaris Scan
-        uses: blackduck-inc/black-duck-security-scan@v2
-        with:
-          polaris_server_url: ${{ vars.POLARIS_SERVER_URL }}
-          polaris_access_token: ${{ secrets.POLARIS_ACCESS_TOKEN }}
-          polaris_assessment_types: "SAST,SCA"
-          polaris_application_name: "BN-demo-csharp-app"
-          polaris_project_name: "bn-dhiraj-chaudhary/BN-cop-test-csharp"
