@@ -83,5 +83,5 @@ jobs:
           polaris_server_url: ${{ vars.POLARIS_SERVER_URL }}
           polaris_access_token: ${{ secrets.POLARIS_ACCESS_TOKEN }}
           polaris_assessment_types: "SAST,SCA"
-          polaris_application_name: "No Application"
+          polaris_application_name: "BN-test-demo-csharp"
           polaris_project_name: "bn-dhiraj-chaudhary/BN-cop-test-csharp"
