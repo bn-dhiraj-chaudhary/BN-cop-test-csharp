@@ -54,15 +54,7 @@ jobs:
             exit 1
           fi
           SERVER_URL="${POLARIS_SERVER_URL%/}"
-          JWT=$(curl -sS -X POST "$SERVER_URL/api/auth/v2/authenticate" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            --data-urlencode "accesstoken=$POLARIS_ACCESS_TOKEN" | jq -r '.jwt')
-          if [ -z "$JWT" ] || [ "$JWT" = "null" ]; then
-            echo "::error::Failed to authenticate with Polaris at $SERVER_URL (could not obtain JWT from access token)"
-            exit 1
-          fi
-          HTTP_CODE=$(curl -sSL -w "%{http_code}" -H "Authorization: Bearer $JWT" -o polaris_cli.zip "$SERVER_URL/api/tools/polaris_cli-linux64.zip")
+          HTTP_CODE=$(curl -sSL -w "%{http_code}" -H "Authorization: Bearer $POLARIS_ACCESS_TOKEN" -o polaris_cli.zip "$SERVER_URL/api/tools/polaris_cli-linux64.zip")
           if [ "$HTTP_CODE" != "200" ]; then
             echo "::error::Failed to download Polaris CLI from $SERVER_URL (HTTP $HTTP_CODE)"
             echo "--- Response body ---"
