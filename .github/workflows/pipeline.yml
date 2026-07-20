@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
           SERVER_URL="${POLARIS_SERVER_URL%/}"
-          HTTP_CODE=$(curl -sSL -w "%{http_code}" -o polaris_cli.zip "$SERVER_URL/api/tools/polaris_cli-linux64.zip")
+          HTTP_CODE=$(curl -sSL -w "%{http_code}" -H "Authorization: Bearer $POLARIS_ACCESS_TOKEN" -o polaris_cli.zip "$SERVER_URL/api/tools/polaris_cli-linux64.zip")
           if [ "$HTTP_CODE" != "200" ]; then
             echo "::error::Failed to download Polaris CLI from $SERVER_URL (HTTP $HTTP_CODE)"
             echo "--- Response body ---"
